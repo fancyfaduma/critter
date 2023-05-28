@@ -2,12 +2,12 @@ package com.udacity.jdnd.course3.critter;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.udacity.jdnd.course3.critter.pet.PetController;
-import com.udacity.jdnd.course3.critter.pet.PetDTO;
-import com.udacity.jdnd.course3.critter.pet.PetType;
-import com.udacity.jdnd.course3.critter.schedule.ScheduleController;
-import com.udacity.jdnd.course3.critter.schedule.ScheduleDTO;
-import com.udacity.jdnd.course3.critter.user.*;
+import com.udacity.jdnd.course3.critter.controllers.PetController;
+import com.udacity.jdnd.course3.critter.controllers.UserController;
+import com.udacity.jdnd.course3.critter.dtos.*;
+import com.udacity.jdnd.course3.critter.entities.EmployeeSkill;
+import com.udacity.jdnd.course3.critter.entities.PetType;
+import com.udacity.jdnd.course3.critter.controllers.ScheduleController;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,12 @@ public class CritterFunctionalTest {
     @Test
     public void testCreateCustomer(){
         CustomerDTO customerDTO = createCustomerDTO();
-        CustomerDTO newCustomer = userController.saveCustomer(customerDTO);
+        CustomerDTO newCustomer = null;
+        try {
+            newCustomer = userController.saveCustomer(customerDTO);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         CustomerDTO retrievedCustomer = userController.getAllCustomers().get(0);
         Assertions.assertEquals(newCustomer.getName(), customerDTO.getName());
         Assertions.assertEquals(newCustomer.getId(), retrievedCustomer.getId());
@@ -53,7 +58,7 @@ public class CritterFunctionalTest {
     }
 
     @Test
-    public void testCreateEmployee(){
+    public void testCreateEmployee() throws Exception {
         EmployeeDTO employeeDTO = createEmployeeDTO();
         EmployeeDTO newEmployee = userController.saveEmployee(employeeDTO);
         EmployeeDTO retrievedEmployee = userController.getEmployee(newEmployee.getId());
@@ -62,10 +67,16 @@ public class CritterFunctionalTest {
         Assertions.assertTrue(retrievedEmployee.getId() > 0);
     }
 
+
     @Test
     public void testAddPetsToCustomer() {
         CustomerDTO customerDTO = createCustomerDTO();
-        CustomerDTO newCustomer = userController.saveCustomer(customerDTO);
+        CustomerDTO newCustomer = null;
+        try {
+            newCustomer = userController.saveCustomer(customerDTO);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         PetDTO petDTO = createPetDTO();
         petDTO.setOwnerId(newCustomer.getId());
@@ -87,10 +98,16 @@ public class CritterFunctionalTest {
         Assertions.assertEquals(retrievedCustomer.getPetIds().get(0), retrievedPet.getId());
     }
 
+
     @Test
     public void testFindPetsByOwner() {
         CustomerDTO customerDTO = createCustomerDTO();
-        CustomerDTO newCustomer = userController.saveCustomer(customerDTO);
+        CustomerDTO newCustomer = null;
+        try {
+            newCustomer = userController.saveCustomer(customerDTO);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         PetDTO petDTO = createPetDTO();
         petDTO.setOwnerId(newCustomer.getId());
@@ -106,7 +123,7 @@ public class CritterFunctionalTest {
     }
 
     @Test
-    public void testFindOwnerByPet() {
+    public void testFindOwnerByPet() throws Exception {
         CustomerDTO customerDTO = createCustomerDTO();
         CustomerDTO newCustomer = userController.saveCustomer(customerDTO);
 
@@ -128,7 +145,12 @@ public class CritterFunctionalTest {
         Set<DayOfWeek> availability = Sets.newHashSet(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY);
         userController.setAvailability(availability, emp1.getId());
 
-        EmployeeDTO emp2 = userController.getEmployee(emp1.getId());
+        EmployeeDTO emp2 = null;
+        try {
+            emp2 = userController.getEmployee(emp1.getId());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         Assertions.assertEquals(availability, emp2.getDaysAvailable());
     }
 
@@ -174,7 +196,12 @@ public class CritterFunctionalTest {
         EmployeeDTO employeeTemp = createEmployeeDTO();
         employeeTemp.setDaysAvailable(Sets.newHashSet(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY));
         EmployeeDTO employeeDTO = userController.saveEmployee(employeeTemp);
-        CustomerDTO customerDTO = userController.saveCustomer(createCustomerDTO());
+        CustomerDTO customerDTO = null;
+        try {
+            customerDTO = userController.saveCustomer(createCustomerDTO());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         PetDTO petTemp = createPetDTO();
         petTemp.setOwnerId(customerDTO.getId());
         PetDTO petDTO = petController.savePet(petTemp);
@@ -285,11 +312,17 @@ public class CritterFunctionalTest {
                     e.setDaysAvailable(Sets.newHashSet(date.getDayOfWeek()));
                     return userController.saveEmployee(e).getId();
                 }).collect(Collectors.toList());
-        CustomerDTO cust = userController.saveCustomer(createCustomerDTO());
+        CustomerDTO cust = null;
+        try {
+            cust = userController.saveCustomer(createCustomerDTO());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        CustomerDTO finalCust = cust;
         List<Long> petIds = IntStream.range(0, numPets)
                 .mapToObj(i -> createPetDTO())
                 .map(p -> {
-                    p.setOwnerId(cust.getId());
+                    p.setOwnerId(finalCust.getId());
                     return petController.savePet(p).getId();
                 }).collect(Collectors.toList());
         return scheduleController.createSchedule(createScheduleDTO(petIds, employeeIds, date, activities));
